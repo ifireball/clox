@@ -58,6 +58,17 @@ void delete_dll(struct dll_node* dll) {
   }  
 }
 
+struct dll_node* append_dll(struct dll_node* dll1, struct dll_node* dll2) {
+  if(!dll1 || !dll2) return dll1 ? dll1 : dll2;
+  struct dll_node* dll1_last = dll1->prev;
+  struct dll_node* dll2_last = dll2->prev;
+  dll1_last->next = dll2;
+  dll2->prev= dll1_last;
+  dll1->prev = dll2_last;
+  dll2_last->next = dll1;
+  return dll1;
+}
+
 bool test_assertion(const char* test_name, bool condition) {
   printf("%s: %s", test_name, condition ? "SUCCESS\n" : "FAILURE\n");
   return condition;
@@ -127,21 +138,75 @@ bool test_new_dll_creates_one_node() {
   return rv;
 }
 
-bool test_add_dll_node_allocates_node() {
+bool test_append_dll_does_nothing_with_2_nulls() {
+  return test_assertion(__func__, append_dll(NULL, NULL) == NULL);
+}
 
-  return test_assertion(__func__, false);
+bool test_append_dll_does_nothing_with_1st_null() {
+  const char *inp_str = "foo";
+  struct dll_node* dll = new_dll(inp_str);
+  bool rv = test_assertion(
+    __func__,
+    append_dll(NULL, dll) == dll
+    && dll_str_cmp(dll, "foo\n")
+  );
+  delete_dll(dll);
+  return rv;
+}
+
+bool test_append_dll_does_nothing_with_2nd_null() {
+  const char *inp_str = "foo";
+  struct dll_node* dll = new_dll(inp_str);
+  bool rv = test_assertion(
+    __func__,
+    append_dll(dll, NULL) == dll 
+    && dll_str_cmp(dll, "foo\n")
+  );
+  delete_dll(dll);
+  return rv;
+}
+
+bool test_append_dll_connects_2_nodes() {
+  struct dll_node* dll1 = new_dll("foo");
+  struct dll_node* dll2 = new_dll("bar");
+  bool rv = test_assertion(
+    __func__,
+    append_dll(dll1, dll2) == dll1
+    && dll_str_cmp(dll1, "foo\nbar\n")
+    && dll_str_cmp(dll2, "bar\nfoo\n")
+  );
+  delete_dll(dll1);
+  return rv;
+}
+
+bool test_append_dll_connects_4_nodes() {
+  struct dll_node* dll1 = append_dll(new_dll("foo"), new_dll("bar"));
+  struct dll_node* dll2 = append_dll(new_dll("baz"), new_dll("bal"));
+  bool rv = test_assertion(
+    __func__,
+    append_dll(dll1, dll2) == dll1
+    && dll_str_cmp(dll1, "foo\nbar\nbaz\nbal\n")
+    && dll_str_cmp(dll2, "baz\nbal\nfoo\nbar\n")
+  );
+  delete_dll(dll1);
+  return rv;
 }
 
 int main() {
-  bool success = true;
-  success &= test_dll_node_count_counts_to_0();
-  success &= test_dll_node_count_counts_to_1();
-  success &= test_dll_node_count_counts_to_2();
-  success &= test_dll_to_string_returns_empty();
-  success &= test_dll_to_string_returns_for_1_elem();
-  success &= test_dll_to_string_returns_for_2_elem();
-  success &= test_new_dll_creates_one_node();
+  bool success = (
+    test_dll_node_count_counts_to_0()
+    && test_dll_node_count_counts_to_1()
+    && test_dll_node_count_counts_to_2()
+    && test_dll_to_string_returns_empty()
+    && test_dll_to_string_returns_for_1_elem()
+    && test_dll_to_string_returns_for_2_elem()
+    && test_new_dll_creates_one_node()
+    && test_append_dll_does_nothing_with_2_nulls()
+    && test_append_dll_does_nothing_with_1st_null()
+    && test_append_dll_does_nothing_with_2nd_null()
+    && test_append_dll_connects_2_nodes()
+    && test_append_dll_connects_4_nodes()
+  );
 
-  // success &= test_add_dll_node_allocates_node();
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
