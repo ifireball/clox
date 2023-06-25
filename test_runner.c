@@ -38,6 +38,26 @@ char* dll_to_string(const struct dll_node *dll) {
   return str;
 }
 
+struct dll_node* new_dll(const char* first_str) {
+  struct dll_node *new_node = calloc(1, sizeof(struct dll_node));
+  new_node->str = calloc(strlen(first_str), sizeof(char));
+  strcpy((char *)new_node->str, first_str);
+  new_node->next = new_node;
+  new_node->prev = new_node;
+  return new_node;
+}
+
+void delete_dll(struct dll_node* dll) {
+  struct dll_node *dll_ptr = dll;
+  while(dll_ptr) {
+    struct dll_node* next = dll_ptr->next;
+    free((void*)dll_ptr->str);
+    free(dll_ptr);
+    dll_ptr = next;
+    if(dll_ptr == dll) break;
+  }  
+}
+
 bool test_assertion(const char* test_name, bool condition) {
   printf("%s: %s", test_name, condition ? "SUCCESS\n" : "FAILURE\n");
   return condition;
@@ -72,24 +92,38 @@ bool test_dll_node_count_counts_to_2() {
   return test_assertion(__func__, dll_node_count(two_node_fixture()) == 2);
 }
 
-bool test_dll_to_string_returns_empty() {
-  char *str = dll_to_string(NULL);
-  bool rv = test_assertion(__func__, strcmp(str, "") == 0);
+bool dll_str_cmp(const struct dll_node* dll, const char* cmp_str) {
+  char *str = dll_to_string(dll);
+  bool rv = (strcmp(str, cmp_str) == 0);
   free(str);
   return rv;
+}
+
+bool test_dll_to_string_returns_empty() {
+  return test_assertion(__func__, dll_str_cmp(NULL, ""));
 }
 
 bool test_dll_to_string_returns_for_1_elem() {
-  char *str = dll_to_string(one_node_fixture());
-  bool rv = test_assertion(__func__, strcmp(str, "foobar\n") == 0);
-  free(str);
-  return rv;
+  return test_assertion(__func__, dll_str_cmp(one_node_fixture(), "foobar\n"));
 }
 
 bool test_dll_to_string_returns_for_2_elem() {
-  char *str = dll_to_string(two_node_fixture());
-  bool rv = test_assertion(__func__, strcmp(str, "foobar\nbazbal\n") == 0);
-  free(str);
+  return test_assertion(__func__, dll_str_cmp(two_node_fixture(), "foobar\nbazbal\n"));
+}
+
+bool test_new_dll_creates_one_node() {
+  const char *inp_str = "foo";
+  struct dll_node* dll = new_dll(inp_str);
+  bool rv = test_assertion(
+    __func__,
+    dll
+    && dll->str
+    && dll->str != inp_str
+    && strcmp(dll->str, inp_str) == 0
+    && dll_node_count(dll) == 1
+    && dll_str_cmp(dll, "foo\n")
+  );
+  delete_dll(dll);
   return rv;
 }
 
@@ -106,6 +140,7 @@ int main() {
   success &= test_dll_to_string_returns_empty();
   success &= test_dll_to_string_returns_for_1_elem();
   success &= test_dll_to_string_returns_for_2_elem();
+  success &= test_new_dll_creates_one_node();
 
   // success &= test_add_dll_node_allocates_node();
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
