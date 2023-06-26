@@ -69,6 +69,11 @@ struct dll_node* append_dll(struct dll_node* dll1, struct dll_node* dll2) {
   return dll1;
 }
 
+struct dll_node* dll_find(struct dll_node* dll, const char* str) {
+  if(dll && strcmp(dll->str, str) == 0) return dll;
+  return NULL;
+}
+
 bool test_assertion(const char* test_name, bool condition) {
   printf("%s: %s", test_name, condition ? "SUCCESS\n" : "FAILURE\n");
   return condition;
@@ -192,6 +197,36 @@ bool test_append_dll_connects_4_nodes() {
   return rv;
 }
 
+bool test_dll_find_works_w_null() {
+  return test_assertion(__func__, dll_find(NULL, "foo") == NULL);
+}
+
+struct dll_node *four_heap_node_fixture() {
+  return append_dll(
+    new_dll("foo"),
+    append_dll(
+      new_dll("bar"),
+      append_dll(
+        new_dll("baz"),
+        new_dll("bal")
+      )
+    )
+  );
+}
+
+#define test_find_assertion(fn, find_str, eq_expr) \
+  __extension__ ({ \
+    struct dll_node *dll = four_heap_node_fixture(); \
+    bool rv = test_assertion(fn, dll_find(dll, (find_str)) == (eq_expr)); \
+    delete_dll(dll); \
+    rv; \
+  })
+
+
+bool test_dll_find_locates_1st_node() {
+  return test_find_assertion(__func__, "foo", dll);
+}
+
 int main() {
   bool success = (
     test_dll_node_count_counts_to_0()
@@ -206,6 +241,8 @@ int main() {
     && test_append_dll_does_nothing_with_2nd_null()
     && test_append_dll_connects_2_nodes()
     && test_append_dll_connects_4_nodes()
+    && test_dll_find_works_w_null()
+    && test_dll_find_locates_1st_node()
   );
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
