@@ -70,7 +70,12 @@ struct dll_node* append_dll(struct dll_node* dll1, struct dll_node* dll2) {
 }
 
 struct dll_node* dll_find(struct dll_node* dll, const char* str) {
-  if(dll && strcmp(dll->str, str) == 0) return dll;
+  struct dll_node* dll_ptr = dll;
+  while(dll_ptr) {
+    if(strcmp(dll_ptr->str, str) == 0) return dll_ptr;
+    dll_ptr = dll_ptr->next;
+    if(dll_ptr == dll) break;
+  }
   return NULL;
 }
 
@@ -227,6 +232,18 @@ bool test_dll_find_locates_1st_node() {
   return test_find_assertion(__func__, "foo", dll);
 }
 
+bool test_dll_find_locates_2nd_node() {
+  return test_find_assertion(__func__, "bar", dll->next);
+}
+
+bool test_dll_find_locates_4th_node() {
+  return test_find_assertion(__func__, "bal", dll->next->next->next);
+}
+
+bool test_dll_find_returns_null_when_not_found() {
+  return test_find_assertion(__func__, "bam", NULL);
+}
+
 int main() {
   bool success = (
     test_dll_node_count_counts_to_0()
@@ -243,6 +260,9 @@ int main() {
     && test_append_dll_connects_4_nodes()
     && test_dll_find_works_w_null()
     && test_dll_find_locates_1st_node()
+    && test_dll_find_locates_2nd_node()
+    && test_dll_find_locates_4th_node()
+    && test_dll_find_returns_null_when_not_found()
   );
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
