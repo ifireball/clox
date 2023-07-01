@@ -1,4 +1,9 @@
-/* test_runner.c - Main test runner */
+/* test_runner.c:
+    Double-linked list (DLL) implementation
+    Tests for that
+    Fixtures used for those tests
+    A main function for running all the tests
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -47,17 +52,6 @@ struct dll_node* new_dll(const char* first_str) {
   return new_node;
 }
 
-void delete_dll(struct dll_node* dll) {
-  struct dll_node *dll_ptr = dll;
-  while(dll_ptr) {
-    struct dll_node* next = dll_ptr->next;
-    free((void*)dll_ptr->str);
-    free(dll_ptr);
-    dll_ptr = next;
-    if(dll_ptr == dll) break;
-  }  
-}
-
 struct dll_node* append_dll(struct dll_node* dll1, struct dll_node* dll2) {
   if(!dll1 || !dll2) return dll1 ? dll1 : dll2;
   struct dll_node* dll1_last = dll1->prev;
@@ -77,6 +71,25 @@ struct dll_node* dll_find(struct dll_node* dll, const char* str) {
     if(dll_ptr == dll) break;
   }
   return NULL;
+}
+
+void dll_remove(struct dll_node **dll, struct dll_node *node) {
+  if(*dll == node) {
+    if(node->next == node)
+      *dll = NULL;
+    else
+      *dll = node->next;
+  }
+  node->prev->next = node->next;
+  node->next->prev = node->prev;
+  free((void*)node->str);
+  free(node);
+}
+
+void delete_dll(struct dll_node* dll) {
+  while(dll) {
+    dll_remove(&dll, dll);
+  }  
 }
 
 bool test_assertion(const char* test_name, bool condition) {
@@ -244,6 +257,47 @@ bool test_dll_find_returns_null_when_not_found() {
   return test_find_assertion(__func__, "bam", NULL);
 }
 
+#define test_remove_assertion(fn, remove_arg, assert_expr) \
+  __extension__ ({ \
+    struct dll_node *dll = four_heap_node_fixture(); \
+    dll_remove(&dll, (remove_arg)); \
+    bool rv = test_assertion(fn, assert_expr); \
+    delete_dll(dll); \
+    rv; \
+  })
+
+bool test_remove_removes_node_in_middle() {
+  return test_remove_assertion(
+    __func__, 
+    dll_find(dll, "baz"), 
+    dll_str_cmp(dll, "foo\nbar\nbal\n")
+  );
+}
+
+bool test_remove_removes_node_in_end() {
+  return test_remove_assertion(
+    __func__, 
+    dll->prev,
+    dll_str_cmp(dll, "foo\nbar\nbaz\n")
+  );
+}
+
+bool test_remove_removes_first_node() {
+  return test_remove_assertion(
+    __func__, 
+    dll,
+    dll_str_cmp(dll, "bar\nbaz\nbal\n")
+  );
+}
+
+bool test_remove_removes_single_node() {
+  struct dll_node *dll = new_dll("foo");
+  dll_remove(&dll, dll);
+  bool rv = test_assertion(__func__, dll == NULL);
+  delete_dll(dll);
+  return rv;
+}
+
 int main() {
   bool success = (
     test_dll_node_count_counts_to_0()
@@ -263,6 +317,10 @@ int main() {
     && test_dll_find_locates_2nd_node()
     && test_dll_find_locates_4th_node()
     && test_dll_find_returns_null_when_not_found()
+    && test_remove_removes_node_in_middle()
+    && test_remove_removes_node_in_end()
+    && test_remove_removes_first_node()
+    && test_remove_removes_single_node()
   );
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
