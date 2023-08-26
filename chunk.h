@@ -13,13 +13,16 @@ typedef struct {
     size_t count;
     size_t capacity;
     uint8_t* code;
-    unsigned* lines;
+    size_t linesCount;
+    size_t linesCapacity;
+    int8_t* lines;
     ValueArray constants;
 } Chunk;
 
 void initChunk(Chunk* chunk);
 void freeChunk(Chunk* chunk);
-void writeChunk(Chunk* chunk, uint8_t byte, unsigned line);
+void writeChunk(Chunk* chunk, uint8_t byte, uint32_t line);
 uint8_t addConstant(Chunk* chunk, Value value);
+uint32_t getLine(Chunk* chunk, size_t offset);
 
 #endif

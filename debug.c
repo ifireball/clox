@@ -26,10 +26,10 @@ static size_t simpleInstruction(const char* name, size_t offset) {
 
 size_t disassembleInstruction(Chunk* chunk, size_t offset) {
     printf("%04lu ", offset);
-    if (offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1]) {
+    if (offset > 0 && getLine(chunk, offset) == getLine(chunk, offset - 1)) {
         printf("   | ");
     } else {
-        printf("%4u ", chunk->lines[offset]);
+        printf("%4u ", getLine(chunk, offset));
     }
 
     uint8_t instruction = chunk->code[offset];
