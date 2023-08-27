@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "chunk.h"
 #include "memory.h"
@@ -32,7 +33,7 @@ void addLineData(Chunk *chunk, int8_t ld) {
 void addLine(Chunk *chunk, uint32_t line) {
     if (chunk->linesCount > 0) {
         uint32_t currentLine = getLine(chunk, chunk->count - 1);
-        if (line == currentLine) {
+        if (line == currentLine && chunk->lines[chunk->linesCount - 1] > -127) {
             chunk->lines[chunk->linesCount - 1]--;
             return;
         }
@@ -63,9 +64,27 @@ void writeChunk(Chunk* chunk, uint8_t byte, uint32_t line) {
     chunk->count++;
 }
 
-uint8_t addConstant(Chunk *chunk, Value value) {
+size_t addConstant(Chunk *chunk, Value value) {
     writeValueArray(&chunk->constants, value);
     return chunk->constants.count - 1;
+}
+
+void writeConstant(Chunk *chunk, Value value, uint32_t line) {
+    size_t constant = addConstant(chunk, value);
+    if (constant < 256) {
+        writeChunk(chunk, OP_CONSTANT, line);
+        writeChunk(chunk, (uint8_t)constant, line);
+        return;
+    }
+    if (constant < (2 << 24)) {
+        writeChunk(chunk, OP_CONSTANT_LONG, line);
+        writeChunk(chunk, (uint8_t)constant, line);
+        writeChunk(chunk, (uint8_t)(constant >> 8), line);
+        writeChunk(chunk, (uint8_t)(constant >> 16), line);
+        return;
+    }
+    printf("To many constants at line: %u.", line);
+    exit(1);
 }
 
 uint32_t getLine(Chunk *chunk, size_t offset) {
