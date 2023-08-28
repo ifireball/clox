@@ -3,11 +3,14 @@
 #include "common.h"
 #include "chunk.h"
 #include "debug.h"
+#include "vm.h"
 
 /* Ignore the unused main parameters*/
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 int main(int argc, const char* argv[]) {
+    initVM();
+
     Chunk chunk;
     initChunk(&chunk);
 
@@ -15,6 +18,11 @@ int main(int argc, const char* argv[]) {
     writeChunk(&chunk, OP_RETURN, 123);
 
     disassembleChunk(&chunk, "test chunk");
+    printf("== test chunk (run) ==\n");
+    interpret(&chunk);
+
+    freeVM();
     freeChunk(&chunk);
+
     return 0;
 }
