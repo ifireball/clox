@@ -30,6 +30,15 @@ static InterpretResult run() {
                 printf("\n");
                 break;
             }
+            case OP_CONSTANT_LONG: {
+                size_t idx = READ_BYTE();
+                idx += READ_BYTE() << 8;
+                idx += READ_BYTE() << 16;
+                Value constant = vm.chunk->constants.values[idx];
+                printValue(constant);
+                printf("\n");
+                break;
+            }
             case OP_RETURN: {
                 return INTERPRET_OK;
             }
