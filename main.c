@@ -18,6 +18,7 @@ int main(int argc, const char* argv[]) {
     /* for (int i = 0; i < 300; ++i) {
         writeConstant(&chunk, 3.3 + (Value)i, 124);
     }*/
+    writeChunk(&chunk, OP_NEGATE, 123);
     writeChunk(&chunk, OP_RETURN, 123);
 
     disassembleChunk(&chunk, "test chunk");
