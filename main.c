@@ -14,10 +14,15 @@ int main(int argc, const char* argv[]) {
     Chunk chunk;
     initChunk(&chunk);
 
+    // -((1.2 + 3.4) / 5.6)
     writeConstant(&chunk, 1.2, 123);
     /* for (int i = 0; i < 300; ++i) {
         writeConstant(&chunk, 3.3 + (Value)i, 124);
     }*/
+    writeConstant(&chunk, 3.4, 123);
+    writeChunk(&chunk, OP_ADD, 123);
+    writeConstant(&chunk, 5.6, 123);
+    writeChunk(&chunk, OP_DIVIDE, 123);
     writeChunk(&chunk, OP_NEGATE, 123);
     writeChunk(&chunk, OP_RETURN, 123);
 
