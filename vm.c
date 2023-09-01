@@ -2,12 +2,21 @@
 
 #include "common.h"
 #include "debug.h"
+#include "memory.h"
 #include "vm.h"
 
 VM vm;
 
 static void resetStack() {
-    vm.stackTop = vm.stack;
+    vm.stack = NULL;
+    vm.stackTop = NULL;
+    vm.stackCount = 0;
+    vm.stackCapacity = 0;
+}
+
+static void freeStack() {
+    FREE_ARRAY(Value, vm.stack, vm.stackCapacity);
+    resetStack();
 }
 
 void initVM() {
@@ -15,6 +24,7 @@ void initVM() {
 }
 
 void freeVM() {
+    freeStack();
 }
 
 static InterpretResult run() {
@@ -80,11 +90,19 @@ InterpretResult interpret(Chunk *chunk)
 }
 
 void push(Value value) {
+    if (vm.stackCount >= vm.stackCapacity) {
+        size_t oldCapacity = vm.stackCapacity;
+        vm.stackCapacity = GROW_CAPACITY(vm.stackCapacity);
+        vm.stack = GROW_ARRAY(Value, vm.stack, oldCapacity, vm.stackCapacity);
+        vm.stackTop = &vm.stack[vm.stackCount];
+    }
     *vm.stackTop = value;
     vm.stackTop++;
+    vm.stackCount++;
 }
 
 Value pop() {
     vm.stackTop--;
+    vm.stackCount--;
     return *vm.stackTop;
 }
