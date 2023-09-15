@@ -36,6 +36,9 @@
   "C_Cpp_Runner.useAddressSanitizer": false,
   "cSpell.words": [
     "clox",
+    "eturn",
+    "hile",
+    "uper",
     "Wunused"
-]
+  ]
 }
