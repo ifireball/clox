@@ -27,7 +27,7 @@ typedef struct {
     TokenType type;
     const char* start;
     int length;
-    int line;
+    uint32_t line;
 } Token;
 
 

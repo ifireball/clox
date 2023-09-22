@@ -7,7 +7,7 @@
 typedef struct {
     const char* start;
     const char* current;
-    int line;
+    uint32_t line;
 } Scanner;
 
 Scanner scanner;
